@@ -124,7 +124,13 @@ def bs_scan_wf(cat="bs_ir"):
         wf = set_execution_options(wf, category=cat)
         wf = preserve_fworker(wf)
 
-        wf = add_additional_fields_to_taskdocs(wf, {"pc_from": "symBaseBinaryQubit/scan_relax_pc/{}".format(e["task_id"])})
+        wf = add_additional_fields_to_taskdocs(
+            wf,
+            {
+                "pc_from": "symBaseBinaryQubit/scan_relax_pc/{}".format(e["task_id"]),
+                "c2db_info": e["c2db_info"]
+            }
+        )
 
         lpad.add_wf(wf)
 
