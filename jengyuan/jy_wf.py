@@ -82,11 +82,15 @@ def test_IR(cat="genWavecar"):
         lpad.add_wf(wf)
 
 
-def bs_scan_wf(cat="scan_bs"):
+def scan_bs_wf(cat="scan_bs"):
 
-    def wf(structure):
+    def scan_bs_fws(structure):
         static_fw = StaticFW(structure=structure)
-        line_fw = NonSCFFW(structure=structure, mode="line", parents=static_fw)
+        line_fw = NonSCFFW(structure=structure,
+                           mode="line",
+                           parents=static_fw,
+                           input_set_overrides={"other_params": {"two_d_kpoints": True}}
+                           )
 
         wf = Workflow([static_fw, line_fw], name="{}:scan_bs".format(structure.formula))
 
@@ -98,7 +102,8 @@ def bs_scan_wf(cat="scan_bs"):
             "METAGGA": "SCAN",
             "NELM": 200,
             "EDIFF": 1E-5,
-            "ISPIN":1,
+            "ISPIN": 1,
+            "LAECHG": False,
         }
 
         wf = add_modify_incar(wf, {"incar_update": updates})
@@ -119,7 +124,7 @@ def bs_scan_wf(cat="scan_bs"):
 
     for e in col.find():
         input_st = Structure.from_dict(e["output"]["structure"])
-        wf = wf(input_st)
+        wf = scan_bs_fws(input_st)
 
         wf = add_modify_incar(wf)
         wf = set_execution_options(wf, category=cat)
@@ -135,6 +140,8 @@ def bs_scan_wf(cat="scan_bs"):
         )
 
         lpad.add_wf(wf)
+        print(wf.name)
 
+scan_bs_wf()
 
 
