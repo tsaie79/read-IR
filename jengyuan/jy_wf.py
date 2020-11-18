@@ -82,13 +82,13 @@ def test_IR(cat="genWavecar"):
         lpad.add_wf(wf)
 
 
-def bs_scan_wf(cat="bs_ir"):
+def bs_scan_wf(cat="scan_bs"):
 
     def wf(structure):
         static_fw = StaticFW(structure=structure)
         line_fw = NonSCFFW(structure=structure, mode="line", parents=static_fw)
 
-        wf = Workflow([static_fw, line_fw], name="{}:read_ir".format(structure.formula))
+        wf = Workflow([static_fw, line_fw], name="{}:scan_bs".format(structure.formula))
 
         updates = {
             "ADDGRID": True,
@@ -98,6 +98,7 @@ def bs_scan_wf(cat="bs_ir"):
             "METAGGA": "SCAN",
             "NELM": 200,
             "EDIFF": 1E-5,
+            "ISPIN":1,
         }
 
         wf = add_modify_incar(wf, {"incar_update": updates})
@@ -110,7 +111,7 @@ def bs_scan_wf(cat="bs_ir"):
     lpad = LaunchPad.from_file(
         os.path.join(
             os.path.expanduser("~"),
-            "config/project/read_ir/{}/my_launchpad.yaml".format(cat)))
+            "config/project/ML_data/{}/my_launchpad.yaml".format(cat)))
     col = VaspCalcDb.from_db_file(
         os.path.join(
             os.path.expanduser("~"),
@@ -128,7 +129,8 @@ def bs_scan_wf(cat="bs_ir"):
             wf,
             {
                 "pc_from": "symBaseBinaryQubit/scan_relax_pc/{}".format(e["task_id"]),
-                "c2db_info": e["c2db_info"]
+                "c2db_info": e["c2db_info"],
+                "wfs": [fw.name for fw in wf.fws]
             }
         )
 
