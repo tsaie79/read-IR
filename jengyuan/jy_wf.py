@@ -1,4 +1,4 @@
-from atomate.vasp.fireworks.core import ScanOptimizeFW, StaticFW, NonSCFFW
+from atomate.vasp.fireworks.core import ScanOptimizeFW, StaticFW, NonSCFFW, OptimizeFW
 from atomate.vasp.workflows.presets.core import wf_bandstructure
 from atomate.vasp.powerups import (
     add_additional_fields_to_taskdocs,
@@ -82,9 +82,10 @@ def test_IR(cat="genWavecar"):
         lpad.add_wf(wf)
 
 
-def scan_bs_wf(cat="scan_bs"):
+def ML_bs_wf(cat="pbe_bs"):
 
-    def scan_bs_fws(structure):
+    def bs_fws(structure):
+        opt = OptimizeFW(structure=structure)
         static_fw = StaticFW(structure=structure)
         line_fw = NonSCFFW(structure=structure,
                            mode="line",
@@ -92,21 +93,22 @@ def scan_bs_wf(cat="scan_bs"):
                            input_set_overrides={"other_params": {"two_d_kpoints": True}}
                            )
 
-        wf = Workflow([static_fw, line_fw], name="{}:scan_bs".format(structure.formula))
+        wf = Workflow([opt, static_fw, line_fw], name="{}:pbe_bs".format(structure.formula))
 
         updates = {
-            "ADDGRID": True,
-            "LASPH": True,
-            "LDAU": False,
-            "LMIXTAU": True,
-            "METAGGA": "SCAN",
-            "NELM": 200,
+            # "ADDGRID": True,
+            # "LASPH": True,
+            # "LDAU": False,
+            # "LMIXTAU": True,
+            # "METAGGA": "SCAN",
+            "NELM": 150,
             "EDIFF": 1E-5,
             "ISPIN": 1,
             "LAECHG": False,
         }
 
         wf = add_modify_incar(wf, {"incar_update": updates})
+        wf = add_modify_incar(wf, {"incar_update": {"LCHARG":False, "ISIF":2, "EDIFFG":-0.01, "EDIFF":1E-4}}, opt.name)
         wf = add_modify_incar(wf, {"incar_update": {"LCHARG":True, "LVHAR":True}}, static_fw.name)
         wf = add_modify_incar(wf, {"incar_update": {"LWAVE":True, "LCHARG":False}}, line_fw.name)
         wf = clean_up_files(wf, files=["CHG*", "DOS*", "LOCPOT*"], fw_name_constraint=line_fw.name,
@@ -124,7 +126,7 @@ def scan_bs_wf(cat="scan_bs"):
 
     for e in col.find():
         input_st = Structure.from_dict(e["output"]["structure"])
-        wf = scan_bs_fws(input_st)
+        wf = bs_fws(input_st)
 
         wf = add_modify_incar(wf)
         wf = set_execution_options(wf, category=cat)
@@ -142,6 +144,6 @@ def scan_bs_wf(cat="scan_bs"):
         lpad.add_wf(wf)
         print(wf.name)
 
-scan_bs_wf()
+ML_bs_wf()
 
 
