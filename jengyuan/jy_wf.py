@@ -86,7 +86,7 @@ def ML_bs_wf(cat="pbe_bs"):
 
     def bs_fws(structure):
         opt = OptimizeFW(structure=structure)
-        static_fw = StaticFW(structure=structure)
+        static_fw = StaticFW(structure=structure, parents=opt)
         line_fw = NonSCFFW(structure=structure,
                            mode="line",
                            parents=static_fw,
