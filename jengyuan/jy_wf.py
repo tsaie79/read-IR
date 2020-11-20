@@ -110,7 +110,7 @@ def ML_bs_wf(cat="pbe_bs"):
         wf = add_modify_incar(wf, {"incar_update": updates})
         wf = add_modify_incar(wf, {"incar_update": {"LCHARG":False, "ISIF":2, "EDIFFG":-0.01, "EDIFF":1E-4}}, opt.name)
         wf = add_modify_incar(wf, {"incar_update": {"LCHARG":True, "LVHAR":True}}, static_fw.name)
-        wf = add_modify_incar(wf, {"incar_update": {"LWAVE":True, "LCHARG":False}}, line_fw.name)
+        wf = add_modify_incar(wf, {"incar_update": {"LWAVE":True, "LCHARG":False, "ISYM":2}}, line_fw.name)
         wf = clean_up_files(wf, files=["CHG*", "DOS*", "LOCPOT*"], fw_name_constraint=line_fw.name,
                             task_name_constraint="VaspToDb")
         return wf

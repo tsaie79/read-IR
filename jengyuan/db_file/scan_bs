@@ -1,0 +1,9 @@
+{
+  "host": "localhost",
+  "port": 1234,
+  "database": "ML_data",
+  "collection": "scan_bs",
+  "admin_user": "Jeng",
+  "admin_password": "qimin",
+  "readonly_user": "Jeng_ro"
+}
