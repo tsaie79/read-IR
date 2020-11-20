@@ -1,0 +1,9 @@
+category: binary_defect_vac_AB3
+env:
+  db_file: /home/tug03990/atomate/example/config/project/defect_db/binary_defect_vac_AB3/db.json
+  incar_update:
+    NCORE: 1
+  scratch_dir: null
+  vasp_cmd: mpirun -np 112 /home/tug03990/opt/vasp.5.4.4/bin/vasp_std
+name: owls
+query: '{}'

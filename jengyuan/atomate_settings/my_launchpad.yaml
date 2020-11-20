@@ -1,0 +1,10 @@
+host: localhost
+logdir: /home/tug03990/atomate/example/logs
+name: defect_db
+password: qimin
+port: 12345
+ssl_ca_file: null
+strm_lvl: INFO
+user_indices: []
+username: Jeng
+wf_user_indices: []

@@ -1,0 +1,14 @@
+_fw_name: CommonAdapter
+_fw_q_type: PBS
+_fw_template_file: /home/tug03990/atomate/example/config/PBS_template_custom.txt
+account: cst
+job_name: test
+logdir: /home/tug03990/atomate/example/logs
+nnodes: 4
+post_rocket: null
+ppnode: 28
+pre_rocket: ssh -N -f -L localhost:12345:155.247.53.219:27017 tug03990@login1
+queue: normal
+rocket_launch: rlaunch -c /home/tug03990/atomate/example/config/project/defect_db/binary_defect_vac_AB3
+  singleshot
+walltime: 10:00:00

@@ -1,0 +1,11 @@
+{
+    "host": "localhost",
+    "port": 12345,
+    "database": "defect_db",
+    "collection": "binary_defect_vac_AB3",
+    "admin_user": "Jeng",
+    "admin_password": "qimin",
+    "readonly_user": "Jeng_ro",
+    "readonly_password": "qimin",
+    "aliases": {}
+}
