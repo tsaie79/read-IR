@@ -7,7 +7,8 @@ from atomate.vasp.powerups import (
     add_modify_kpoints,
     set_queue_options,
     set_execution_options,
-    clean_up_files
+    clean_up_files,
+    modify_gzip_vasp
 )
 from atomate.vasp.database import VaspCalcDb
 
@@ -82,7 +83,7 @@ def test_IR(cat="genWavecar"):
         lpad.add_wf(wf)
 
 
-def ML_bs_wf(cat="pbe_bs"):
+def ML_bs_wf(cat="pbe_bs_sym"):
 
     def bs_fws(structure):
         opt = OptimizeFW(structure=structure)
@@ -111,6 +112,7 @@ def ML_bs_wf(cat="pbe_bs"):
         wf = add_modify_incar(wf, {"incar_update": {"LCHARG":False, "ISIF":2, "EDIFFG":-0.01, "EDIFF":1E-4}}, opt.name)
         wf = add_modify_incar(wf, {"incar_update": {"LCHARG":True, "LVHAR":True}}, static_fw.name)
         wf = add_modify_incar(wf, {"incar_update": {"LWAVE":True, "LCHARG":False, "ISYM":2}}, line_fw.name)
+        wf = modify_gzip_vasp(wf, False)
         wf = clean_up_files(wf, files=["CHG*", "DOS*", "LOCPOT*"], fw_name_constraint=line_fw.name,
                             task_name_constraint="VaspToDb")
         return wf
