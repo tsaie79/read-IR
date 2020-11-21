@@ -1,0 +1,11 @@
+{
+    "host": "155.247.53.219",
+    "port": 27017,
+    "database": "ML_data",
+    "collection": "pbe_bs_sym",
+    "admin_user": "Jeng",
+    "admin_password": "qimin",
+    "readonly_user": "Jeng_ro",
+    "readonly_password": "qimin",
+    "aliases": {}
+}

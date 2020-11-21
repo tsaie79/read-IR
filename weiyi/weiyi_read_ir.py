@@ -12,7 +12,6 @@ class Wavecar:
         # super().__init__()
         # physical constant 2m/hbar**2
         self._C = 0.262465831
-
         with open(filename, 'rb') as f:
             # read the header information
             recl, spin, rtag = np.fromfile(f, dtype=np.float64, count=3).astype(np.int)
@@ -213,7 +212,7 @@ class Kpoint:
         with open(filename, 'rb') as f:
             text = f.read()
 
-        if b'\nline' in text:
+        if b'\nline' in text or b'\nLine' in text:
             row = re.search(b"\n *\d+", text).group().decode("utf-8")
             divisions = re.findall(r"\d+", row)[0]
             k_step = int(divisions)
@@ -397,7 +396,7 @@ class IrBand(Wavecar, Outcar, Kpoint):
 
         return all_hsk_band_info
 
-    def get_band_character(self, encut=50):
+    def get_band_character(self, encut=50, en_tol=0.01):
         ksqrtcut = encut * self._C
         all_hsk_band_info = {}
         for hsk_sym, hsk, idx, lg in zip(self.hsk_sym, self.hsk, self._idx_from_all_kp, self.little_group):
@@ -408,8 +407,12 @@ class IrBand(Wavecar, Outcar, Kpoint):
                 gvec = self.gvecs[idx]
                 coeff = self.coeffs[spin][idx]
                 assert gvec.shape[0] == coeff.shape[-1]
-                band_energy = self.band_energy[spin][idx]
-                band_energy_border = np.unique(band_energy[:, 0].round(decimals=3), return_index=True)[1]
+                band_en_occ = self.band_energy[spin][idx]
+
+                band_energy = band_en_occ[:, 0]
+                is_border = np.abs(band_energy[1:]-band_energy[:-1] < en_tol)
+                band_energy_border = np.concatenate(([0], np.arange(1, len(band_energy))[~is_border]))
+                # band_energy_border = np.unique(band_energy[:, 0].round(decimals=2), return_index=True)[1]
 
                 is_g_included_encut = ((gvec + hsk).dot(self._metric) * (gvec + hsk)).sum(-1) <= ksqrtcut
                 # get gvec and coeff within searching encut
@@ -442,17 +445,17 @@ class IrBand(Wavecar, Outcar, Kpoint):
                 if is_char_int:
                     band_char = band_char.astype(int)
 
-                band_energy = band_energy[band_energy_border]
+                band_en_occ = band_en_occ[band_energy_border]
 
                 if self.spin == 1:
 
-                    all_hsk_band_info[hsk_sym] = {'n_levels': len(band_energy_border),
-                                                  'k_coordinates': hsk,
-                                                  'little_group_operations': lg,
-                                                  'is_char_int': is_char_int,
-                                                  'band_char': band_char,
-                                                  'band_energy': band_energy[:, 0],
-                                                  'band_occupation': band_energy[:, 2].round(decimals=3).astype(int)}
+                    spin_info.update({'n_levels': len(band_energy_border),
+                                      'k_coordinates': hsk,
+                                      'little_group_operations': lg,
+                                      'is_char_int': is_char_int,
+                                      'band_char': band_char,
+                                      'band_energy': band_en_occ[:, 0],
+                                      'band_occupation': band_en_occ[:, 2].round(decimals=3).astype(int)})
 
                 elif self.spin == 2:
                     spin_info['spin_up' if spin == 0 else 'spin_down'] = {'n_levels': len(band_energy_border),
@@ -473,7 +476,7 @@ class IrBand(Wavecar, Outcar, Kpoint):
              'nband': self.nband,
              'nkpoint': self.nkpoint,
              'spin': self.spin,
-             'band_symmetry': self.get_band_character(output_list)}
+             'band_symmetry': self.get_band_character()}
 
         return d
 
@@ -484,16 +487,9 @@ class IrBand(Wavecar, Outcar, Kpoint):
             hsk_diff = hsk @ np.linalg.inv(self.rot) - hsk
             idx = np.isclose(hsk_diff, hsk_diff.round(decimals=3).astype(int), atol=1e-3).all(-1).nonzero()[0]
             if self.spin == 1:
+                # TODO: can just return idx
                 little_group.append([self.rot[idx], self.trans[idx]])
             else:
                 little_group.append([self.rot[idx], self.trans[idx], self.spin_rot[idx]])
 
         self.little_group = little_group
-
-
-if __name__ == '__main__':
-    # wc = Wavecar('MoS2/WAVECAR')
-    # outcar = Outcar('MoS2/OUTCAR', uniform=True)
-
-    ir = IrBand('MoS2', uniform=True)
-    info = ir.get_band_character_v2()
