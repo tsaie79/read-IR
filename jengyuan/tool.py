@@ -10,6 +10,6 @@ pbe_bs = pbe_bs.get_band_structure(652)
 bs_plotter = BSPlotter(scan_bs)
 # bs_plotter.add_bs(scan_bs)
 bs_plotter.add_bs(pbe_bs)
-plot = bs_plotter.get_plot(vbm_cbm_marker=True)
+plot = bs_plotter.get_plot(vbm_cbm_marker=True, ylim=[-20, 20])
 plot.show()
 #%%
