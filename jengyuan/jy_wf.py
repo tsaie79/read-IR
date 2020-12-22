@@ -20,6 +20,8 @@ from monty.serialization import loadfn
 
 import os
 
+from weiyi.modify_poscar import modify
+
 
 def relax_pc():
     lpad = LaunchPad.from_file("/home/tug03990/atomate/example/config/project/"
@@ -128,6 +130,11 @@ def ML_bs_wf(cat="pbe_bs_sym"):
 
     for e in col.find():
         input_st = Structure.from_dict(e["output"]["structure"])
+        mod_st = modify(input_st)
+        if mod_st:
+            input_st = mod_st
+        else:
+            continue
         wf = bs_fws(input_st)
 
         wf = add_modify_incar(wf)
@@ -146,6 +153,6 @@ def ML_bs_wf(cat="pbe_bs_sym"):
         lpad.add_wf(wf)
         print(wf.name)
 
-ML_bs_wf()
 
-
+if __name__ == '__main__':
+    ML_bs_wf()

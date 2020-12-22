@@ -7,15 +7,14 @@ SG_INV = np.concatenate((np.array([2, 147, 148, 175, 176]), np.arange(10, 16), n
                          np.arange(191, 195), np.arange(200, 207), np.arange(221, 231)))
 
 
-def modify(poscar, symprec=0.1):
-    struc = Structure.from_file(poscar)
+def modify(struc, symprec=0.1):
     sg_op = SpacegroupAnalyzer(struc, symprec=symprec).get_space_group_operations()
     if sg_op.int_number not in SG_INV:
-        return struc
+        pass
     else:
         inversion = SymmOp.from_xyz_string('-x, -y, -z')
         if inversion in sg_op:
-            return struc
+            pass
         else:
             s = struc.copy()
             # translate inversion center to cell center
@@ -25,3 +24,4 @@ def modify(poscar, symprec=0.1):
 
             assert inversion in SpacegroupAnalyzer(s).get_space_group_operations()
             return s
+
