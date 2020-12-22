@@ -1,24 +1,17 @@
 from atomate.vasp.database import VaspCalcDb
-from pymatgen.core.structure import Structure
 from pathlib import Path
-from weiyi.weiyi_read_ir import IrBand
+from weiyi.read_ir_new import BandCharacter
+from weiyi.modify_poscar import SG_INV
 
 HOME = Path(__file__).absolute().parent.parent
 atomate_db = VaspCalcDb.from_db_file('db.json')
-example = atomate_db.collection.find_one({'task_label': 'nscf line', 'formula_pretty': 'BN'})
-dir_name = example['dir_name'].split('/')[-3:]
-OUTPUT_DIR = HOME / '/'.join(dir_name)
+examples = atomate_db.collection.find({'task_label': 'nscf line',
+                                       # 'output.spacegroup.number': {'$in': SG_INV.tolist()}
+                                       })
+example = examples[0]
+OUTPUT_DIR = HOME / '/'.join(example['dir_name'].split('/')[-3:])
+sg_number = example['output']['spacegroup']['number']
 
-struc_dict = example['input']['structure']
-struc = Structure.from_dict(struc_dict)
-
-if __name__ == '__main__':
-    ir = IrBand(OUTPUT_DIR)
-    ir_info = ir.get_band_character()
-
-    # oc = Outcar(OUTPUT_DIR / 'OUTCAR')
-    # import gzip
-    # import shutil
-    #
-    # with open('wc', 'wb') as f_out, gzip.open('WAVECAR.gz', 'rb') as f_in:
-    #     shutil.copyfileobj(f_in, f_out)
+bc = BandCharacter(OUTPUT_DIR, sg_number)
+char = bc.get_band_character()
+print(char)
