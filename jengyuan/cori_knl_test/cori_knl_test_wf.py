@@ -1,0 +1,50 @@
+#%%
+from atomate.vasp.fireworks.jcustom import JHSEStaticFW
+
+from atomate.vasp.powerups import *
+
+from fireworks import Workflow, LaunchPad
+
+from pymatgen import Structure
+
+mos2 = Structure.from_dict({'@module': 'pymatgen.core.structure',
+                                      '@class': 'Structure',
+                                      'charge': None,
+                                      'lattice': {'matrix': [[3.1840664646845926, 0.0, 0.0],
+                                                             [-1.5920332323422963, 2.757482445754964, 0.0],
+                                                             [0.0, 0.0, 18.12711264635152]],
+                                                  'a': 3.1840664646845926,
+                                                  'b': 3.184066464684592,
+                                                  'c': 18.12711264635152,
+                                                  'alpha': 90.0,
+                                                  'beta': 90.0,
+                                                  'gamma': 120.00000000000001,
+                                                  'volume': 159.15618285810052},
+                                      'sites': [{'species': [{'element': 'Mo', 'occu': 1}],
+                                                 'abc': [0.0, 0.0, 0.49999999999999994],
+                                                 'xyz': [0.0, 0.0, 9.06355632317576],
+                                                 'label': 'Mo'},
+                                                {'species': [{'element': 'S', 'occu': 1}],
+                                                 'abc': [0.6666666666666666, 0.3333333333333333, 0.5862551225713523],
+                                                 'xyz': [1.5920332323422963, 0.9191608152516546, 10.62711264635152],
+                                                 'label': 'S'},
+                                                {'species': [{'element': 'S', 'occu': 1}],
+                                                 'abc': [0.6666666666666666, 0.3333333333333333, 0.41374487742864774],
+                                                 'xyz': [1.5920332323422963, 0.9191608152516546, 7.5],
+                                                 'label': 'S'}]})
+
+mos2.make_supercell([9,9,1])
+
+fw = JHSEStaticFW(mos2)
+
+wf = Workflow([fw], name="node:1")
+
+wf = add_additional_fields_to_taskdocs(wf, {"node":1})
+
+wf = set_execution_options(wf, category="cori_knl_test")
+
+wf = preserve_fworker(wf)
+
+lpad = LaunchPad.from_file('/global/u1/t/tsaie79/atomate/config/project/test/cori_knl_test/my_launchpad.yaml')
+
+lpad.add_wf(wf)
