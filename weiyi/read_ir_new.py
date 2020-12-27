@@ -165,7 +165,7 @@ class BandCharacter(Wavecar):
     def __init__(self, output_dir, sg_number, gamma_only=False):
         super(BandCharacter, self).__init__(filename=output_dir / 'WAVECAR')
         self.sg_number = sg_number
-        self.little_group_dict = loadfn('ir_data/{}.json'.format(self.sg_number))
+        self.little_group_dict = loadfn('ir_data/{}.json'.format(self.sg_number)) # this .json file cannot be found
 
         if not gamma_only:
             hsk, hsk_sym, _idx_from_all_kp = [], [], []
@@ -233,7 +233,7 @@ class BandCharacter(Wavecar):
                     irs = []
                     for sp in splt:
                         sp = sp.round(decimals=2)
-                        if np.allclose((b := sp.astype(int)), sp):
+                        if np.allclose((b := sp.astype(int)), sp): # the syntax error for :=
                             ir = ''.join([str(n) + symb if n else '' for n, symb in zip(b, d['irrep symbols'])])
                             irs.append(ir)
                         else:
