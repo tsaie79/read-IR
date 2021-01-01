@@ -216,7 +216,7 @@ class BandCharacter(Wavecar):
                         gvec_rot = (gvec + hsk) @ np.linalg.inv(r) - hsk
                         compare = np.isclose(gvec_rot[:, np.newaxis, :], gvec, atol=1e-3).all(-1)
                         if not compare.any(-1).all():
-                            pass
+                            raise ValueError
                         rot_idx = compare.nonzero()[1]
 
                         coeff_rot = coeff[:, rot_idx]
