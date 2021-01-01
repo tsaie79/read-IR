@@ -1,11 +1,15 @@
 #%%
+from atomate.vasp.fireworks import StaticFW
 from atomate.vasp.fireworks.jcustom import JHSEStaticFW
+from atomate.vasp.jpowerups import scp_files
 
 from atomate.vasp.powerups import *
 
 from fireworks import Workflow, LaunchPad
 
-from pymatgen import Structure
+from pymatgen import Structure, Molecule, Element
+
+import os
 
 mos2 = Structure.from_dict({'@module': 'pymatgen.core.structure',
                                       '@class': 'Structure',
@@ -33,18 +37,25 @@ mos2 = Structure.from_dict({'@module': 'pymatgen.core.structure',
                                                  'xyz': [1.5920332323422963, 0.9191608152516546, 7.5],
                                                  'label': 'S'}]})
 
-mos2.make_supercell([9,9,1])
+mos2.make_supercell([1,1,1])
+node = 1
 
-fw = JHSEStaticFW(mos2)
+mos2 = Molecule(["H"], [[0,0,0]]).get_boxed_structure(10,10,10)
 
-wf = Workflow([fw], name="node:1")
+fw = StaticFW(mos2)
+# fw = JHSEStaticFW(mos2)
 
-wf = add_additional_fields_to_taskdocs(wf, {"node":1})
+wf = Workflow([fw], name="node:{}".format(node))
+wf = add_additional_fields_to_taskdocs(wf, {"node":"{}".format(node)})
 
-wf = set_execution_options(wf, category="cori_knl_test")
+wf = set_execution_options(wf, category="n{}".format(node))
 
 wf = preserve_fworker(wf)
 
-lpad = LaunchPad.from_file('/global/u1/t/tsaie79/atomate/config/project/test/cori_knl_test/my_launchpad.yaml')
+wf = add_modify_incar(wf, {"incar_update": {"NCORE":1, "LAECHG":False, "ENCUT":350}})
+
+wf = scp_files(wf, "/home/jengyuantsai/Research/projects", "test", "H")
+
+lpad = LaunchPad.from_file(os.path.expanduser(os.path.join("~", 'config/project/test/n{}/my_launchpad.yaml'.format(node))))
 
 lpad.add_wf(wf)
