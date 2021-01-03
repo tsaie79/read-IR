@@ -242,10 +242,10 @@ class BandCharacter(Wavecar):
 
                     all_hsk_band_info[hsk_sym] = {
                         'n_levels': len(band_energy_border),
-                        'k_coordinates': hsk,
-                        'band_char': band_char,
-                        'band_energy': band_en_occ[:, 0],
-                        'band_occupation': band_en_occ[:, 2].round(decimals=3).astype(int),
+                        'k_coordinates': hsk.tolist(),
+                        'band_char': band_char.tolist(),
+                        'band_energy': band_en_occ[:, 0].tolist(),
+                        'band_occupation': band_en_occ[:, 2].round(decimals=3).astype(int).tolist(),
                         'band_irrep': irs
                     }
 
