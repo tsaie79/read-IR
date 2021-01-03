@@ -11,7 +11,7 @@ def get_character(file_dir: str):
     sg_number = SpacegroupAnalyzer(struc, symprec=0.1).get_space_group_number()
     bc = BandCharacter(file_dir, sg_number)
     character = bc.get_band_character()
-    print(character)
+    return character
 
 
 def get_character_from_db():
@@ -23,9 +23,8 @@ def get_character_from_db():
     sg_number = example['output']['spacegroup']['number']
     bc = BandCharacter(OUTPUT_DIR, sg_number)
     char = bc.get_band_character()
-    print(char)
+    return char
 
 
 if __name__ == '__main__':
-    get_character('example')
-    get_character_from_db()
+    char = get_character('example')
