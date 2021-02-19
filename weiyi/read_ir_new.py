@@ -165,7 +165,7 @@ class BandCharacter(Wavecar):
     def __init__(self, output_dir, sg_number, gamma_only=False):
         super(BandCharacter, self).__init__(filename=output_dir / 'WAVECAR')
         self.sg_number = sg_number
-        self.little_group_dict = loadfn('ir_data/{}.json'.format(self.sg_number)) # this .json file cannot be found
+        self.little_group_dict = loadfn('ir_data/{}.json'.format(self.sg_number))
 
         if not gamma_only:
             hsk, hsk_sym, _idx_from_all_kp = [], [], []
@@ -216,7 +216,7 @@ class BandCharacter(Wavecar):
                         gvec_rot = (gvec + hsk) @ np.linalg.inv(r) - hsk
                         compare = np.isclose(gvec_rot[:, np.newaxis, :], gvec, atol=1e-3).all(-1)
                         if not compare.any(-1).all():
-                            pass
+                            raise ValueError
                         rot_idx = compare.nonzero()[1]
 
                         coeff_rot = coeff[:, rot_idx]
@@ -233,7 +233,8 @@ class BandCharacter(Wavecar):
                     irs = []
                     for sp in splt:
                         sp = sp.round(decimals=2)
-                        if np.allclose((b := sp.astype(int)), sp): # the syntax error for :=
+                        b = sp.astype(int)
+                        if np.allclose(b, sp):
                             ir = ''.join([str(n) + symb if n else '' for n, symb in zip(b, d['irrep symbols'])])
                             irs.append(ir)
                         else:
@@ -241,10 +242,11 @@ class BandCharacter(Wavecar):
 
                     all_hsk_band_info[hsk_sym] = {
                         'n_levels': len(band_energy_border),
-                        'k_coordinates': hsk,
-                        'band_char': band_char,
-                        'band_energy': band_en_occ[:, 0],
-                        'band_occupation': band_en_occ[:, 2].round(decimals=3).astype(int),
+                        'k_coordinates': hsk.tolist(),
+                        'band_char_real': band_char.real.tolist(),
+                        'band_char_imag': band_char.imag.tolist(),
+                        'band_energy': band_en_occ[:, 0].tolist(),
+                        'band_occupation': band_en_occ[:, 2].round(decimals=3).astype(int).tolist(),
                         'band_irrep': irs
                     }
 
