@@ -1,4 +1,5 @@
 from atomate.vasp.fireworks.core import ScanOptimizeFW, StaticFW, NonSCFFW, OptimizeFW
+
 from atomate.vasp.workflows.presets.core import wf_bandstructure
 from atomate.vasp.powerups import (
     add_additional_fields_to_taskdocs,
@@ -13,12 +14,13 @@ from atomate.vasp.powerups import (
 from atomate.vasp.database import VaspCalcDb
 
 from pymatgen import Structure
+from pymatgen.io.vasp.sets import MPMetalRelaxSet
 
 from fireworks import LaunchPad, Workflow
 
 from monty.serialization import loadfn
 
-import os
+import os, glob
 
 from weiyi.modify_poscar import modify
 
@@ -92,8 +94,7 @@ def ML_bs_wf(cat="pbe_bs_sym"):
         static_fw = StaticFW(structure=structure, parents=opt)
         line_fw = NonSCFFW(structure=structure,
                            mode="line",
-                           parents=static_fw,
-                           input_set_overrides={"other_params": {"two_d_kpoints": True}}
+                           parents=static_fw
                            )
 
         wf = Workflow([opt, static_fw, line_fw], name="{}:pbe_bs".format(structure.formula))
@@ -108,10 +109,43 @@ def ML_bs_wf(cat="pbe_bs_sym"):
             "EDIFF": 1E-5,
             "ISPIN": 1,
             "LAECHG": False,
+            "SIGMA": 0.05
         }
 
         wf = add_modify_incar(wf, {"incar_update": updates})
-        wf = add_modify_incar(wf, {"incar_update": {"LCHARG":False, "ISIF":2, "EDIFFG":-0.01, "EDIFF":1E-4}}, opt.name)
+        wf = add_modify_incar(wf, {"incar_update": {"LCHARG":False, "ISIF":3, "EDIFFG":-0.01, "EDIFF":1E-6}}, opt.name)
+        wf = add_modify_incar(wf, {"incar_update": {"LCHARG":True, "LVHAR":True}}, static_fw.name)
+        wf = add_modify_incar(wf, {"incar_update": {"LWAVE":True, "LCHARG":False, "ISYM":2}}, line_fw.name)
+        wf = modify_gzip_vasp(wf, False)
+        wf = clean_up_files(wf, files=["CHG*", "DOS*", "LOCPOT*"], fw_name_constraint=line_fw.name,
+                            task_name_constraint="VaspToDb")
+        return wf
+
+    def bs_fws_metal(structure):
+        opt = OptimizeFW(structure=structure, vasp_input_set=MPMetalRelaxSet(structure))
+        static_fw = StaticFW(structure=structure, parents=opt, vasp_input_set=MPMetalRelaxSet(structure))
+        line_fw = NonSCFFW(structure=structure,
+                           mode="line",
+                           parents=static_fw
+                           )
+
+        wf = Workflow([opt, static_fw, line_fw], name="{}:pbe_bs".format(structure.formula))
+
+        updates = {
+            # "ADDGRID": True,
+            # "LASPH": True,
+            # "LDAU": False,
+            # "LMIXTAU": True,
+            # "METAGGA": "SCAN",
+            "NELM": 150,
+            "EDIFF": 1E-5,
+            "ISPIN": 1,
+            "LAECHG": False,
+            "SIGMA": 0.05
+        }
+
+        wf = add_modify_incar(wf, {"incar_update": updates})
+        wf = add_modify_incar(wf, {"incar_update": {"LCHARG":False, "ISIF":3, "EDIFFG":-0.01, "EDIFF":1E-6}}, opt.name)
         wf = add_modify_incar(wf, {"incar_update": {"LCHARG":True, "LVHAR":True}}, static_fw.name)
         wf = add_modify_incar(wf, {"incar_update": {"LWAVE":True, "LCHARG":False, "ISYM":2}}, line_fw.name)
         wf = modify_gzip_vasp(wf, False)
@@ -120,38 +154,33 @@ def ML_bs_wf(cat="pbe_bs_sym"):
         return wf
 
     lpad = LaunchPad.from_file(
-        os.path.join(
-            os.path.expanduser("~"),
-            "config/project/ML_data/{}/my_launchpad.yaml".format(cat)))
-    col = VaspCalcDb.from_db_file(
-        os.path.join(
-            os.path.expanduser("~"),
-            "config/project/symBaseBinaryQubit/scan_relax_pc/db.json")).collection
+        os.path.expanduser(os.path.join("~", "config/project/ML_data/{}/my_launchpad.yaml".format(cat))))
 
-    for e in col.find():
-        input_st = Structure.from_dict(e["output"]["structure"])
-        mod_st = modify(input_st)
-        if mod_st:
-            input_st = mod_st
-        else:
-            continue
-        wf = bs_fws(input_st)
+    base_dir = "/project/projectdirs/m2663/tsai/ML_data/PBE_bulk"
 
-        wf = add_modify_incar(wf)
-        wf = set_execution_options(wf, category=cat)
-        wf = preserve_fworker(wf)
+    # for st in glob.glob(os.path.join(base_dir, "cifs_metal_modified/*")):
+    input_st = Structure.from_file(os.path.join(base_dir, "cifs_metal_modified/mp-1001615.cif"))
+    mod_st = modify(input_st)
+    if mod_st:
+        input_st = mod_st
+    else:
+        pass
+    wf = bs_fws_metal(input_st)
+    wf = add_modify_incar(wf)
+    wf = set_execution_options(wf, category=cat)
+    wf = preserve_fworker(wf)
 
-        wf = add_additional_fields_to_taskdocs(
-            wf,
-            {
-                "pc_from": "symBaseBinaryQubit/scan_relax_pc/{}".format(e["task_id"]),
-                "c2db_info": e["c2db_info"],
-                "wfs": [fw.name for fw in wf.fws]
-            }
-        )
+    wf = add_additional_fields_to_taskdocs(
+        wf,
+        {
+            "mp_id": st.split("/")[-1],
+            "wfs": [fw.name for fw in wf.fws]
+        }
+    )
+    wf.name = wf.name+":{}".format(st.split("/")[-1])
+    lpad.add_wf(wf)
 
-        lpad.add_wf(wf)
-        print(wf.name)
+
 
 
 if __name__ == '__main__':

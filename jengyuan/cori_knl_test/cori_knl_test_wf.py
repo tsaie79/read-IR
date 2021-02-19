@@ -37,25 +37,27 @@ mos2 = Structure.from_dict({'@module': 'pymatgen.core.structure',
                                                  'xyz': [1.5920332323422963, 0.9191608152516546, 7.5],
                                                  'label': 'S'}]})
 
-mos2.make_supercell([1,1,1])
-node = 1
+# mos2.make_supercell([5,5,1])
 
-mos2 = Molecule(["H"], [[0,0,0]]).get_boxed_structure(10,10,10)
+for node in [1]:
 
-fw = StaticFW(mos2)
-# fw = JHSEStaticFW(mos2)
+    mos2 = Molecule(["H"], [[0,0,0]]).get_boxed_structure(5,5,5)
 
-wf = Workflow([fw], name="node:{}".format(node))
-wf = add_additional_fields_to_taskdocs(wf, {"node":"{}".format(node)})
+    fw = StaticFW(mos2)
+    # fw = JHSEStaticFW(mos2)
 
-wf = set_execution_options(wf, category="n{}".format(node))
+    wf = Workflow([fw], name="node:{}".format(node))
+    wf = add_additional_fields_to_taskdocs(wf, {"node":"{}".format(node)})
 
-wf = preserve_fworker(wf)
+    wf = set_execution_options(wf, category="n{}".format(node))
 
-wf = add_modify_incar(wf, {"incar_update": {"NCORE":1, "LAECHG":False, "ENCUT":350}})
+    wf = preserve_fworker(wf)
 
-wf = scp_files(wf, "/home/jengyuantsai/Research/projects", "test", "H")
+    wf = add_modify_incar(wf, {"incar_update": {"NCORE":1, "LAECHG":False, "LVHAR":False,
+                                                "LCHARG": False, "LWAVE": False}})
 
-lpad = LaunchPad.from_file(os.path.expanduser(os.path.join("~", 'config/project/test/n{}/my_launchpad.yaml'.format(node))))
+    wf = scp_files(wf, "/home/jengyuantsai/Research/projects/test/")
 
-lpad.add_wf(wf)
+    lpad = LaunchPad.from_file(os.path.expanduser(os.path.join("~", 'config/project/test/n{}/my_launchpad.yaml'.format(node))))
+
+    lpad.add_wf(wf)
