@@ -158,28 +158,28 @@ def ML_bs_wf(cat="pbe_bs_sym"):
 
     base_dir = "/project/projectdirs/m2663/tsai/ML_data/PBE_bulk"
 
-    # for st in glob.glob(os.path.join(base_dir, "cifs_metal_modified/*")):
-    input_st = Structure.from_file(os.path.join(base_dir, "cifs_metal_modified/mp-1001615.cif"))
-    mod_st = modify(input_st)
-    if mod_st:
-        input_st = mod_st
-    else:
-        pass
-    wf = bs_fws_metal(input_st)
-    wf = add_modify_incar(wf)
-    wf = set_execution_options(wf, category=cat)
-    wf = preserve_fworker(wf)
+    for st in glob.glob(os.path.join(base_dir, "cifs_metal_modified/*")):
+        input_st = Structure.from_file(st)
+        mod_st = modify(input_st)
+        if mod_st:
+            input_st = mod_st
+        else:
+            continue
+        wf = bs_fws_metal(input_st)
+        wf = add_modify_incar(wf)
+        wf = set_execution_options(wf, category=cat)
+        wf = preserve_fworker(wf)
 
-    wf = add_additional_fields_to_taskdocs(
-        wf,
-        {
-            "mp_id": st.split("/")[-1],
-            "wfs": [fw.name for fw in wf.fws]
-        }
-    )
-    wf.name = wf.name+":{}".format(st.split("/")[-1])
-    lpad.add_wf(wf)
-
+        wf = add_additional_fields_to_taskdocs(
+            wf,
+            {
+                "mp_id": st.split("/")[-1],
+                "wfs": [fw.name for fw in wf.fws]
+            }
+        )
+        wf.name = wf.name+":{}".format(st.split("/")[-1])
+        lpad.add_wf(wf)
+        break
 
 
 
