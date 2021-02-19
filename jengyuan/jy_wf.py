@@ -87,7 +87,7 @@ def test_IR(cat="genWavecar"):
         lpad.add_wf(wf)
 
 
-def ML_bs_wf(cat="pbe_bs_sym"):
+def ML_bs_wf(cat="PBE_bulk"):
 
     def bs_fws(structure):
         opt = OptimizeFW(structure=structure)
@@ -100,16 +100,13 @@ def ML_bs_wf(cat="pbe_bs_sym"):
         wf = Workflow([opt, static_fw, line_fw], name="{}:pbe_bs".format(structure.formula))
 
         updates = {
-            # "ADDGRID": True,
-            # "LASPH": True,
-            # "LDAU": False,
-            # "LMIXTAU": True,
-            # "METAGGA": "SCAN",
             "NELM": 150,
             "EDIFF": 1E-5,
             "ISPIN": 1,
             "LAECHG": False,
-            "SIGMA": 0.05
+            "LASPH": False,
+            "ISMEAR": -5,
+            "LREAL": "Auto"
         }
 
         wf = add_modify_incar(wf, {"incar_update": updates})
@@ -123,7 +120,7 @@ def ML_bs_wf(cat="pbe_bs_sym"):
 
     def bs_fws_metal(structure):
         opt = OptimizeFW(structure=structure, vasp_input_set=MPMetalRelaxSet(structure))
-        static_fw = StaticFW(structure=structure, parents=opt, vasp_input_set=MPMetalRelaxSet(structure))
+        static_fw = StaticFW(structure=structure, parents=opt, vasp_input_set_params={"reciprocal_density":200})
         line_fw = NonSCFFW(structure=structure,
                            mode="line",
                            parents=static_fw
@@ -132,16 +129,14 @@ def ML_bs_wf(cat="pbe_bs_sym"):
         wf = Workflow([opt, static_fw, line_fw], name="{}:pbe_bs".format(structure.formula))
 
         updates = {
-            # "ADDGRID": True,
-            # "LASPH": True,
-            # "LDAU": False,
-            # "LMIXTAU": True,
-            # "METAGGA": "SCAN",
             "NELM": 150,
             "EDIFF": 1E-5,
             "ISPIN": 1,
             "LAECHG": False,
-            "SIGMA": 0.05
+            "LASPH": False,
+            "LREAL": "Auto",
+            "ISMEAR": 1,
+            "SIGMA": 0.05,
         }
 
         wf = add_modify_incar(wf, {"incar_update": updates})
@@ -158,14 +153,13 @@ def ML_bs_wf(cat="pbe_bs_sym"):
 
     base_dir = "/project/projectdirs/m2663/tsai/ML_data/PBE_bulk"
 
-    for st in glob.glob(os.path.join(base_dir, "cifs_metal_modified/*")):
+    for st in glob.glob(os.path.join(base_dir, "cifs_nonmetal_modified/*")):
+        print(st)
         input_st = Structure.from_file(st)
         mod_st = modify(input_st)
         if mod_st:
             input_st = mod_st
-        else:
-            continue
-        wf = bs_fws_metal(input_st)
+        wf = bs_fws(input_st)
         wf = add_modify_incar(wf)
         wf = set_execution_options(wf, category=cat)
         wf = preserve_fworker(wf)
