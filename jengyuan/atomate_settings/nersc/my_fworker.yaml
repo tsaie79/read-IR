@@ -1,0 +1,9 @@
+category: PBE_bulk
+env:
+  db_file: /global/homes/t/tsaie79/config/project/ML_data/PBE_bulk/db.json
+  incar_update:
+    NCORE: 1
+  scratch_dir: null
+  vasp_cmd: srun -n 32 -c 32 --cpu_bind=cores vasp_std
+name: Cori
+query: '{}'
