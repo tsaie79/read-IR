@@ -188,7 +188,7 @@ def ML_bs_wf(metal=True):
         )
         wf.name = wf.name+":{}".format(st.split("/")[-1])
         lpad.add_wf(wf)
-        break
+
 
 
 if __name__ == '__main__':
