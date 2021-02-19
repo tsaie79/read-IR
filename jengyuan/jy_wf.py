@@ -87,7 +87,7 @@ def test_IR(cat="genWavecar"):
         lpad.add_wf(wf)
 
 
-def ML_bs_wf(cat="PBE_bulk"):
+def ML_bs_wf(cat="PBE_bulk", metal=True):
 
     def bs_fws(structure):
         opt = OptimizeFW(structure=structure)
@@ -152,8 +152,11 @@ def ML_bs_wf(cat="PBE_bulk"):
         os.path.expanduser(os.path.join("~", "config/project/ML_data/{}/my_launchpad.yaml".format(cat))))
 
     base_dir = "/project/projectdirs/m2663/tsai/ML_data/PBE_bulk"
-
-    for st in glob.glob(os.path.join(base_dir, "cifs_nonmetal_modified/*")):
+    if metal:
+        p =  "cifs_nmetal_modified/*"
+    else:
+        p =  "cifs_nonmetal_modified/*"
+    for st in glob.glob(os.path.join(base_dir, p)):
         print(st)
         input_st = Structure.from_file(st)
         mod_st = modify(input_st)
