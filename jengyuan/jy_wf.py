@@ -152,17 +152,20 @@ def ML_bs_wf(cat="PBE_bulk", metal=True):
         os.path.expanduser(os.path.join("~", "config/project/ML_data/{}/my_launchpad.yaml".format(cat))))
 
     base_dir = "/project/projectdirs/m2663/tsai/ML_data/PBE_bulk"
+    wf_func = None
     if metal:
-        p =  "cifs_nmetal_modified/*"
+        p = "cifs_nmetal_modified/*"
+        wf_func = bs_fws_metal
     else:
-        p =  "cifs_nonmetal_modified/*"
+        p = "cifs_nonmetal_modified/*"
+        wf_func = bs_fws
     for st in glob.glob(os.path.join(base_dir, p)):
         print(st)
         input_st = Structure.from_file(st)
         mod_st = modify(input_st)
         if mod_st:
             input_st = mod_st
-        wf = bs_fws(input_st)
+        wf = wf_func(input_st)
         wf = add_modify_incar(wf)
         wf = set_execution_options(wf, category=cat)
         wf = preserve_fworker(wf)
