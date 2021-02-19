@@ -179,7 +179,6 @@ def ML_bs_wf(cat="PBE_bulk", metal=True):
         )
         wf.name = wf.name+":{}".format(st.split("/")[-1])
         lpad.add_wf(wf)
-        break
 
 
 
