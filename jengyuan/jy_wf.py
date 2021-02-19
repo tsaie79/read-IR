@@ -14,6 +14,7 @@ from atomate.vasp.powerups import (
 from atomate.vasp.database import VaspCalcDb
 
 from pymatgen import Structure
+from pymatgen.io.vasp.inputs import Kpoints
 from pymatgen.io.vasp.sets import MPMetalRelaxSet
 
 from fireworks import LaunchPad, Workflow
@@ -87,7 +88,12 @@ def test_IR(cat="genWavecar"):
         lpad.add_wf(wf)
 
 
-def ML_bs_wf(cat="PBE_bulk", metal=True):
+def ML_bs_wf(metal=True):
+    cat = None
+    if metal:
+        cat = "metal"
+    else:
+        cat = "nonmetal"
 
     def bs_fws(structure):
         opt = OptimizeFW(structure=structure)
@@ -105,8 +111,8 @@ def ML_bs_wf(cat="PBE_bulk", metal=True):
             "ISPIN": 1,
             "LAECHG": False,
             "LASPH": False,
-            "ISMEAR": -5,
-            "LREAL": "Auto"
+            "LREAL": "Auto",
+            "SIGMA": 0.05
         }
 
         wf = add_modify_incar(wf, {"incar_update": updates})
@@ -120,7 +126,7 @@ def ML_bs_wf(cat="PBE_bulk", metal=True):
 
     def bs_fws_metal(structure):
         opt = OptimizeFW(structure=structure, vasp_input_set=MPMetalRelaxSet(structure))
-        static_fw = StaticFW(structure=structure, parents=opt, vasp_input_set_params={"reciprocal_density":200})
+        static_fw = StaticFW(structure=structure, parents=opt)
         line_fw = NonSCFFW(structure=structure,
                            mode="line",
                            parents=static_fw
@@ -142,6 +148,8 @@ def ML_bs_wf(cat="PBE_bulk", metal=True):
         wf = add_modify_incar(wf, {"incar_update": updates})
         wf = add_modify_incar(wf, {"incar_update": {"LCHARG":False, "ISIF":3, "EDIFFG":-0.01, "EDIFF":1E-6}}, opt.name)
         wf = add_modify_incar(wf, {"incar_update": {"LCHARG":True, "LVHAR":True}}, static_fw.name)
+        kpt = Kpoints.automatic_density_by_vol(structure, 200)
+        wf = add_modify_kpoints(wf, {"kpoints_update":{"kpts": kpt.kpts}}, static_fw.name)
         wf = add_modify_incar(wf, {"incar_update": {"LWAVE":True, "LCHARG":False, "ISYM":2}}, line_fw.name)
         wf = modify_gzip_vasp(wf, False)
         wf = clean_up_files(wf, files=["CHG*", "DOS*", "LOCPOT*"], fw_name_constraint=line_fw.name,
@@ -149,7 +157,7 @@ def ML_bs_wf(cat="PBE_bulk", metal=True):
         return wf
 
     lpad = LaunchPad.from_file(
-        os.path.expanduser(os.path.join("~", "config/project/ML_data/{}/my_launchpad.yaml".format(cat))))
+        os.path.expanduser(os.path.join("~", "config/project/ML_data/PBE_bulk/my_launchpad.yaml")))
 
     base_dir = "/project/projectdirs/m2663/tsai/ML_data/PBE_bulk"
     wf_func = None
@@ -174,13 +182,14 @@ def ML_bs_wf(cat="PBE_bulk", metal=True):
             wf,
             {
                 "mp_id": st.split("/")[-1],
-                "wfs": [fw.name for fw in wf.fws]
+                "wfs": [fw.name for fw in wf.fws],
+                "material_type": cat
             }
         )
         wf.name = wf.name+":{}".format(st.split("/")[-1])
         lpad.add_wf(wf)
-
+        break
 
 
 if __name__ == '__main__':
-    ML_bs_wf()
+    ML_bs_wf(metal=True)
