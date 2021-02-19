@@ -154,7 +154,7 @@ def ML_bs_wf(cat="PBE_bulk", metal=True):
     base_dir = "/project/projectdirs/m2663/tsai/ML_data/PBE_bulk"
     wf_func = None
     if metal:
-        p = "cifs_nmetal_modified/*"
+        p = "cifs_metal_modified/*"
         wf_func = bs_fws_metal
     else:
         p = "cifs_nonmetal_modified/*"
