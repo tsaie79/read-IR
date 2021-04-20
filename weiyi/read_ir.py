@@ -1,3 +1,4 @@
+import re
 import numpy as np
 from numpy.linalg import norm
 from fractions import Fraction
@@ -11,6 +12,107 @@ def str2coo(coo_str: str):
         coo_str (str): string of coordinates.
     """
     return [Fraction(s).__float__() for s in coo_str.split(',')]
+
+
+class Outcar:
+    """
+    A class that extracts space group information from OUTCAR.
+    """
+
+    def __init__(self, filename='OUTCAR', uniform=False):
+        # super().__init__()
+
+        header_pattern = r"irot\s+det\(A\)\s+alpha\s+n_x\s+n_y\s+n_z\s+tau_x\s+tau_y\s+tau_z"
+        row_pattern = r"\s+\d+((?:\s+[\d\.\-]+)+)"
+        # footer_pattern = r"-{104}"
+        if not uniform:
+            footer_pattern = r"-{77,}"
+        else:
+            footer_pattern = r"\s+Subroutine IBZKPT returns following result:"
+
+        with open(filename, 'rt') as f:
+            text = f.read()
+
+        table_pattern_text = header_pattern + r"\s*^(?P<table_body>(?:\s+" + row_pattern + r")+)\s+" + footer_pattern
+        table_pattern = re.compile(table_pattern_text, re.MULTILINE | re.DOTALL)
+        operators = []
+        for mt in table_pattern.finditer(text):
+            table_body_text = mt.group("table_body")
+            for line in table_body_text.split("\n"):
+                entries = re.findall(r"[\d\-.]+", line)
+                op = [float(entry) for entry in entries[1:]]
+                operators.append(op)
+
+        self._operators = np.array(operators)
+        self._generate_mat()
+
+    def _generate_mat(self):
+        operations = []
+        for i, op in enumerate(self._operators):
+            det, theta, nx, ny, nz, tx, ty, tz = op
+            assert np.isclose(nx ** 2 + ny ** 2 + nz ** 2, 1)
+            theta = np.pi * theta / 180
+            nbar_L = np.array([[0., -nz, ny],
+                               [nz, 0., -nx],
+                               [-ny, nx, 0.]])
+            nbar_S = np.array([[nz, nx - 1j * ny],
+                               [nx + 1j * ny, -nz]])
+            # Rodrigues' rotation formula
+            RL = det * (np.eye(3) + np.sin(theta) * nbar_L + (1 - np.cos(theta)) * (nbar_L @ nbar_L))
+            RS = np.cos(theta / 2) * np.eye(2) - 1j * np.sin(theta / 2) * nbar_S
+            assert np.isclose(abs(np.linalg.det(RL)), 1, atol=1e-3)
+            t = np.array([tx, ty, tz])
+
+            operations.append([RL, RS, t])
+
+        self.operation_matrix = operations
+
+
+class Kpoint:
+    def __init__(self, filename='KPOINTS'):
+        # super().__init__()
+        with open(filename, 'rb') as f:
+            text = f.read()
+
+        if b'\nline' in text or b'\nLine' in text:
+            row = re.search(b"\n *\d+", text).group().decode("utf-8")
+            divisions = re.findall(r"\d+", row)[0]
+            k_step = int(divisions)
+
+            k_coo, k_sym = [], []
+            for kp in re.findall(b" ?[\d. ]+[\d. ]+[\d. ]+ ?[! ]+.+", text):
+
+                kp_str = [s.group() for s in re.finditer(b"[\d.a-zA-Z]+", kp)]
+                coo = [float(s) for s in kp_str[:3]]
+                k_coo.append(coo)
+                sym = kp_str[-1].decode("utf-8")
+                if 'G' in sym:
+                    k_sym.append('\u0393')
+                else:
+                    k_sym.append(sym)
+
+            self.hsk, idx0 = np.unique(k_coo, return_index=True, axis=0)
+            self.hsk_sym = np.array(k_sym)[idx0]
+            krange = np.arange(len(k_sym) / 2 * k_step)
+            idx_from_all_kp = krange[(krange % k_step == k_step - 1) | (krange % k_step == 0)]
+            self._idx_from_all_kp = idx_from_all_kp[idx0].astype(int)
+
+        else:
+            idx, k_coo, k_sym = [], [], []
+            for i, row in enumerate(text.split(b'\n')[3:]):
+                if not row:
+                    break
+
+                cont = [s for s in row.split(b' ') if s]
+                if len(cont) == 5:
+                    k_coo.append([float(s) for s in cont[:3]])
+                    sym = cont[-1].decode("utf-8")
+                    k_sym.append('\u0393' if 'G' in sym else sym)
+                    idx.append(i)
+
+            self.hsk, idx0 = np.unique(k_coo, return_index=True, axis=0)
+            self.hsk_sym = np.array(k_sym)[idx0]
+            self._idx_from_all_kp = np.array(idx)[idx0]
 
 
 class Wavecar:

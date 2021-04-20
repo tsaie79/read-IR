@@ -1,4 +1,4 @@
-from weiyi.read_ir_new import BandCharacter
+from weiyi.read_ir import BandCharacter
 from pathlib import Path
 from pymatgen.core.structure import Structure
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
