@@ -18,10 +18,7 @@ class Outcar:
     """
     A class that extracts space group information from OUTCAR.
     """
-
     def __init__(self, filename='OUTCAR', uniform=False):
-        # super().__init__()
-
         header_pattern = r"irot\s+det\(A\)\s+alpha\s+n_x\s+n_y\s+n_z\s+tau_x\s+tau_y\s+tau_z"
         row_pattern = r"\s+\d+((?:\s+[\d\.\-]+)+)"
         # footer_pattern = r"-{104}"
@@ -62,7 +59,6 @@ class Outcar:
             RS = np.cos(theta / 2) * np.eye(2) - 1j * np.sin(theta / 2) * nbar_S
             assert np.isclose(abs(np.linalg.det(RL)), 1, atol=1e-3)
             t = np.array([tx, ty, tz])
-
             operations.append([RL, RS, t])
 
         self.operation_matrix = operations
@@ -70,7 +66,6 @@ class Outcar:
 
 class Kpoint:
     def __init__(self, filename='KPOINTS'):
-        # super().__init__()
         with open(filename, 'rb') as f:
             text = f.read()
 
@@ -117,11 +112,10 @@ class Kpoint:
 
 class Wavecar:
     """
-    This class reads related information from WAVECAR. Adapted from pymatgen.io.vasp.outputs.Wavecar
+    This class reads related information from WAVECAR. Adapted from pymatgen.io.vasp.outputs.Wavecar.
+    Right now only supports spinless results.
     """
-
     def __init__(self, filename='WAVECAR'):
-        # super().__init__()
         # physical constant 2m/hbar**2
         self._C = 0.262465831
         with open(filename, 'r') as f:
@@ -129,7 +123,6 @@ class Wavecar:
             recl, spin, rtag = np.fromfile(f, dtype=np.float64, count=3).astype(int)
             recl8 = int(recl / 8)
             self.spin = spin
-
             # assert rtag in (45200, 45210, 53300, 53310)
             assert rtag in (45200, 53310)
 
@@ -226,7 +219,6 @@ class Wavecar:
         Args:
             kpoint (np.ndarray): kpoint coordinates
             nplane (int): number of plane waves actually being used
-            inc (float): energy searching increment
 
         Returns:
             an array of all valid g vectors
@@ -255,6 +247,14 @@ class Wavecar:
 
 
 class BandCharacter(Wavecar):
+    """
+    This class calculate band characters using coefficients read from WAVECAR.
+
+    Args:
+        output_dir (str): directory where WAVECAR is stored.
+        sg_number (int): space group number of the structure.
+        gamma_only (bool): if the calculation is for gamma only.
+    """
     def __init__(self, output_dir: str, sg_number, gamma_only=False):
         super(BandCharacter, self).__init__(filename=output_dir + '/WAVECAR')
         from pymatgen.core.structure import Structure
@@ -267,10 +267,6 @@ class BandCharacter(Wavecar):
         mat = sa.get_conventional_to_primitive_transformation_matrix()
         invmat = np.linalg.inv(mat)
         self.mat = mat
-        # if np.allclose(np.linalg.norm(invmat @ a0, axis=1), np.linalg.norm(a1, axis=1)):
-        #     self.mat = mat
-        # else:
-        #     self.mat = np.array([[1, -1, 0], [1, 1, 0], [0, 0, 2]], dtype=np.float_) / 2
         norm0 = norm(invmat @ a0, axis=1)
         norm1 = norm(a1, axis=1)
         ratio = norm0 / norm1
@@ -294,7 +290,6 @@ class BandCharacter(Wavecar):
             for key in self.little_group_dict.keys():
                 sym, coo = key.split('&')
                 coo = np.array(str2coo(coo))
-                # _bool = np.isclose(self.kpoints, coo).all(-1)
                 _bool = ((self.kpoints - coo) ** 2 < 1e-3).all(-1)
                 if _bool.any():
                     hsk.append(coo)
@@ -308,12 +303,20 @@ class BandCharacter(Wavecar):
         else:
             self.hsk = np.array([[0, 0, 0]])
             self.hsk_sym = ['GM']
-            # _bool = np.isclose(self.kpoints, self.hsk).all(-1)
             _bool = ((self.kpoints - self.hsk) ** 2 < 1e-3).all(-1)
             self._idx_from_all_kp = _bool.nonzero()[0][:1]
 
     @staticmethod
     def swap_ops_axis(ops, swap=None):
+        """
+        Swap acting axes of symmetry operations. Useful when the lattice vectors alignment is not the standard one.
+        Args:
+            ops (numpy.ndarray): symmetry operations.
+            swap (str): which two axes to swap. One of 'xy', 'yz' and 'xz'.
+
+        Returns: Swapped operations.
+
+        """
         if swap is not None:
             if swap == 'xy':
                 return ops[:, [1, 0, 2], :][..., [1, 0, 2, 3]]
