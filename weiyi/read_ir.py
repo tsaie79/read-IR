@@ -372,7 +372,8 @@ class BandCharacter(Wavecar):
                     irs = []
                     for sp in splt:
                         sp = sp.round(decimals=1)
-                        if np.allclose((b := sp.astype(int)), sp):
+                        b = sp.astype(int)
+                        if np.allclose(b, sp):
                             ir = ','.join([str(n) + symb for n, symb in zip(b, d['irrep symbols']) if n])
                             irs.append(ir)
                         else:
