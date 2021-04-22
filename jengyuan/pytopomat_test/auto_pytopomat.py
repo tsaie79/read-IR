@@ -19,7 +19,8 @@ from subprocess import call
 from pytopomat.workflows.fireworks import IrvspFW
 
 
-c2db = get_db("2dMat_from_cmr_fysik", "2dMaterial_v1", port=12345, user="adminUser", password="qiminyan").collection
+# c2db = get_db("2dMat_from_cmr_fysik", "2dMaterial_v1", port=12345, user="adminUser", password="qiminyan").collection
+c2db = get_db("ML_data", "PBE_bulk")
 for spg in c2db.distinct("spacegroup"):
     print(spg)
     e = c2db.find_one({"spacegroup": spg, "magstate":"NM"})
