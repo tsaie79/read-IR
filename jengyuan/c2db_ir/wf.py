@@ -20,8 +20,7 @@ from pytopomat.workflows.fireworks import IrvspFW
 
 from mpinterfaces.utils import ensure_vacuum
 
-
-c2db = VaspCalcDb.from_db_file("c2db.json")
+c2db = VaspCalcDb.from_db_file("/home/tug03990/scripts/read-IR/jengyuan/c2db_ir/c2db.json")
 for spg in c2db.distinct("spacegroup"):
     print(spg)
     e = c2db.find_one({"spacegroup": spg, "magstate":"NM"})
@@ -42,7 +41,7 @@ for spg in c2db.distinct("spacegroup"):
     st = Structure.from_file("POSCAR_std")
     os.chdir("..")
 
-    wf = get_wf(st, "../irvsp_hse_sp.yaml")
+    wf = get_wf(st, "/home/tug03990/scripts/read-IR/jengyuan/c2db_ir/irvsp_hse_sp.yaml")
     fws = wf.fws[:3]
     fw_irvsp = IrvspFW(structure=st, parents=fws[-1], additional_fields={"c2db_uid": e["uid"],
                                                                          "spg_c2db": e["spacegroup"],
