@@ -21,9 +21,9 @@ from pytopomat.workflows.fireworks import IrvspFW
 from mpinterfaces.utils import ensure_vacuum
 
 c2db = VaspCalcDb.from_db_file("/home/tug03990/scripts/read-IR/jengyuan/c2db_ir/c2db.json")
-for spg in c2db.distinct("spacegroup"):
+for spg in c2db.collection.distinct("spacegroup"):
     print(spg)
-    e = c2db.find_one({"spacegroup": spg, "magstate":"NM"})
+    e = c2db.collection.find_one({"spacegroup": spg, "magstate":"NM"})
     try:
         st = e["structure"]
     except Exception:
@@ -45,7 +45,7 @@ for spg in c2db.distinct("spacegroup"):
     fws = wf.fws[:3]
     fw_irvsp = IrvspFW(structure=st, parents=fws[-1], additional_fields={"c2db_uid": e["uid"],
                                                                          "spg_c2db": e["spacegroup"],
-                                                                         "spg": SpacegroupAnalyzer(st).get_space_group_symbol()
+                                                                         "spg_pymatgen": SpacegroupAnalyzer(st).get_space_group_symbol()
                                                                          })
     fws.append(fw_irvsp)
     wf = Workflow(fws, name=wf.name)
@@ -58,5 +58,6 @@ for spg in c2db.distinct("spacegroup"):
     wf = set_execution_options(wf, category="irvsp_test")
     wf = preserve_fworker(wf)
     wf.name = wf.name + ":{}".format(spg)
-    # lpad.add_wf(wf)
+    lpad.add_wf(wf)
     print(wf)
+    break
