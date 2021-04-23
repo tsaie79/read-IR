@@ -167,7 +167,7 @@ def ML_bs_wf(metal=True):
     else:
         p = "cifs_nonmetal_modified/*"
         wf_func = bs_fws
-    for st in glob.glob(os.path.join(base_dir, p)):
+    for st in glob.glob(os.path.join(base_dir, p))[500:]:
         print(st)
         input_st = Structure.from_file(st)
         mod_st = modify(input_st)
@@ -192,4 +192,4 @@ def ML_bs_wf(metal=True):
 
 
 if __name__ == '__main__':
-    ML_bs_wf(metal=True)
+    ML_bs_wf(metal=False)
