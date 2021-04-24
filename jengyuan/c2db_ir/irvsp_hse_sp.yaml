@@ -32,7 +32,7 @@ fireworks:
     mode: line
     cp_file_from_prev: "WAVECAR"
     input_set_overrides:
-      kpoints_line_density: 0.5
+#      kpoints_line_density: 0.5
       reciprocal_density: 144
       other_params:
         two_d_kpoints: True
