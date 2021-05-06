@@ -1,0 +1,10 @@
+host: localhost
+logdir: /global/homes/t/tsaie79/atomate/logs
+name: C2DB_IR
+password: qimin
+port: 12345
+ssl_ca_file: null
+strm_lvl: INFO
+user_indices: []
+username: Jeng
+wf_user_indices: []

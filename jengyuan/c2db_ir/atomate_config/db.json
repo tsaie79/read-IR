@@ -1,0 +1,11 @@
+{
+    "host": "localhost",
+    "port": 12345,
+    "database": "C2DB_IR",
+    "collection": "calc_data",
+    "admin_user": "Jeng",
+    "admin_password": "qimin",
+    "readonly_user": "Jeng_ro",
+    "readonly_password": "qimin",
+    "aliases": {}
+}

@@ -1,0 +1,14 @@
+_fw_name: CommonAdapter
+_fw_q_type: SLURM
+_fw_template_file: /global/homes/t/tsaie79/atomate/config/queue_template.slurm
+account: m2663
+constraint: knl
+job_name: defect_db
+logdir: /global/u1/t/tsaie79/atomate/logs
+nodes: 4
+post_rocket: null
+pre_rocket: module load vasp/20181030-knl
+qos: debug
+rocket_launch: rlaunch -c /global/homes/t/tsaie79/config/project/C2DB_IR/calc_data
+  singleshot
+walltime: 00:30:00

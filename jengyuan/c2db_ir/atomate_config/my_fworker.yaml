@@ -1,0 +1,11 @@
+category: calc_data
+env:
+  db_file: /global/homes/t/tsaie79/config/project/C2DB_IR/calc_data/db.json
+  gamma_vasp_cmd: srun -n 32 -c 32 --cpu_bind=cores vasp_gam
+  incar_update:
+    NCORE: 1
+  scratch_dir: null
+  vasp_cmd: srun -n 32 -c 32 --cpu_bind=cores vasp_std
+  vasp_ncl: srun -n 32 -c 32 --cpu_bind=cores vasp_ncl
+name: weiyi_cori
+query: '{}'
