@@ -41,11 +41,18 @@ for e in list(c2db.collection.find({"magstate":"NM"}))[1:2]:
 
     wf = get_wf(st, "/home/tug03990/scripts/read-IR/jengyuan/c2db_ir/irvsp_hse_sp.yaml")
     fws = wf.fws[:3]
-    fw_irvsp = IrvspFW(structure=st, parents=fws[-1], additional_fields={"c2db_uid": e["uid"],
-                                                                         "spg_c2db": e["spacegroup"],
-                                                                         "spg_pymatgen": SpacegroupAnalyzer(st).get_space_group_symbol()
-                                                                         },
-                       irvsp_to_db_kwargs={"collection_name": "ir_data"})
+    fw_irvsp = IrvspFW(
+        structure=st,
+        parents=fws[-1],
+        irvsptodb_kwargs={
+            "collection_name": "ir_data",
+            "additional_fields": {
+                "c2db_uid": e["uid"],
+                "spg_c2db": e["spacegroup"],
+                "spg_pymatgen": SpacegroupAnalyzer(st).get_space_group_symbol()
+            }
+        }
+    )
     fws.append(fw_irvsp)
     wf = Workflow(fws, name=wf.name)
 
