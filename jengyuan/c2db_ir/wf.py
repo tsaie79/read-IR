@@ -62,7 +62,8 @@ for e in list(c2db.collection.find({"magstate":"NM"}))[1:2]:
     wf = add_additional_fields_to_taskdocs(wf, {"c2db_uid": e["uid"]})
     wf = set_execution_options(wf, category="calc_data")
     wf = preserve_fworker(wf)
-    wf = set_queue_options(wf, walltime="00:30:00", qos="debug", fw_name_constraint=wf.fws[-1].name)
+    for fw_id in [0, -1]:
+        wf = set_queue_options(wf, walltime="00:30:00", qos="debug", fw_name_constraint=wf.fws[fw_id].name)
     wf.name = wf.name + ":{}".format(e["uid"])
     lpad.add_wf(wf)
     print(wf)
