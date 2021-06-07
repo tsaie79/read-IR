@@ -1,5 +1,5 @@
 import shutil
-
+from my_atomate.powerups import add_modify_twod_bs_kpoints
 from atomate.vasp.workflows.base.core import get_wf
 from atomate.vasp.database import VaspCalcDb
 from fireworks import LaunchPad, Workflow
@@ -55,14 +55,20 @@ for e in list(c2db.collection.find({"magstate":"NM"}))[1:2]:
     )
     fws.append(fw_irvsp)
     wf = Workflow(fws, name=wf.name)
-
+    wf = add_modify_twod_bs_kpoints(
+        wf,
+        modify_kpoints_params={
+            "kpoints_line_density": 10,
+            "reciprocal_density": 144
+        }
+    )
     lpad = LaunchPad.from_file(os.path.expanduser(
         os.path.join("~", "config/project/C2DB_IR/calc_data/my_launchpad.yaml")))
     wf = clean_up_files(wf, ("WAVECAR*", "CHGCAR*"), wf.fws[-1].name, task_name_constraint=wf.fws[-1].tasks[-1].fw_name)
     wf = add_additional_fields_to_taskdocs(wf, {"c2db_uid": e["uid"]})
-    wf = set_execution_options(wf, category="calc_data")
+    wf = set_execution_options(wf, category="calc_data", fworker_name="jyt_cori")
     wf = preserve_fworker(wf)
-    for fw_id in [0, -1]:
+    for fw_id in [0, 1, -1]:
         wf = set_queue_options(wf, walltime="00:30:00", qos="debug", fw_name_constraint=wf.fws[fw_id].name)
     wf.name = wf.name + ":{}".format(e["uid"])
     lpad.add_wf(wf)
