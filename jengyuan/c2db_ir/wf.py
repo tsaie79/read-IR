@@ -1,9 +1,6 @@
-import shutil
 from my_atomate.powerups import add_modify_twod_bs_kpoints
 from atomate.vasp.workflows.base.core import get_wf
 from atomate.vasp.database import VaspCalcDb
-from fireworks import LaunchPad, Workflow
-import os
 from atomate.vasp.powerups import (
     add_additional_fields_to_taskdocs,
     preserve_fworker,
@@ -13,7 +10,7 @@ from atomate.vasp.powerups import (
     clean_up_files,
     add_modify_kpoints
 )
-import numpy as np
+from fireworks import LaunchPad, Workflow
 from pymatgen.core.structure import Structure, SymmOp
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.io.vasp.sets import MPRelaxSet
@@ -21,6 +18,8 @@ from subprocess import call
 from pytopomat.workflows.fireworks import IrvspFW
 
 from mpinterfaces.utils import ensure_vacuum
+import os, shutil
+import numpy as np
 
 c2db = VaspCalcDb.from_db_file("/home/tug03990/scripts/read-IR/jengyuan/c2db_ir/c2db.json")
 for e in list(c2db.collection.find({"magstate":"NM"}))[1:2]:
@@ -57,10 +56,8 @@ for e in list(c2db.collection.find({"magstate":"NM"}))[1:2]:
     wf = Workflow(fws, name=wf.name)
     wf = add_modify_twod_bs_kpoints(
         wf,
-        modify_kpoints_params={
-            "kpoints_line_density": 10,
-            "reciprocal_density": 144
-        }
+        modify_kpoints_params={"kpoints_line_density": 10, "reciprocal_density": 144},
+        fw_name_constraint=wf.fws[2].name
     )
     lpad = LaunchPad.from_file(os.path.expanduser(
         os.path.join("~", "config/project/C2DB_IR/calc_data/my_launchpad.yaml")))
