@@ -23,7 +23,7 @@ import os, shutil
 import numpy as np
 
 c2db = VaspCalcDb.from_db_file("/home/tug03990/scripts/read-IR/jengyuan/c2db_ir/c2db.json")
-for e in list(c2db.collection.find({"magstate":"NM"}))[0:1]:
+for e in list(c2db.collection.find({"magstate":"NM"}))[1:2]:
     st = e["structure"]
 
     os.makedirs("symmetrized_st", exist_ok=True)

@@ -6,7 +6,7 @@ fireworks:
         EDIFF: 1.0E-4
         EDIFFG: -0.01
         ENCUT: 800
-        ISPIN: 1
+        ISPIN: 2
         SIGMA: 0.05
         ISIF: 2
         LCHARG: False
@@ -21,7 +21,7 @@ fireworks:
       user_incar_settings:
         EDIFF: 1.0E-5
         ENCUT: 800
-        ISPIN: 1
+        ISPIN: 2
         SIGMA: 0.05
         LAECHG: False
         LWAVE: True
@@ -39,7 +39,7 @@ fireworks:
         user_incar_settings:
           EDIFF: 1.0E-5
           ENCUT: 800
-          ISPIN: 1
+          ISPIN: 2
           LWAVE: True
 
 - fw: pytopomat.workflows.fireworks.IrvspFW
