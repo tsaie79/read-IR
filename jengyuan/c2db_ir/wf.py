@@ -23,7 +23,7 @@ import os, shutil
 import numpy as np
 
 c2db = VaspCalcDb.from_db_file("/home/tug03990/scripts/read-IR/jengyuan/c2db_ir/c2db.json")
-for idx, e in enumerate(list(c2db.collection.find({"magstate":"NM"}))[21:26]):
+for idx, e in enumerate(list(c2db.collection.find({"magstate":"NM"}))[31:36]):
     st = e["structure"]
 
     os.makedirs("symmetrized_st", exist_ok=True)
@@ -40,10 +40,11 @@ for idx, e in enumerate(list(c2db.collection.find({"magstate":"NM"}))[21:26]):
     shutil.rmtree("symmetrized_st")
 
     wf = get_wf(st, "/home/tug03990/scripts/read-IR/jengyuan/c2db_ir/irvsp_hse_sp.yaml")
-    fws = wf.fws[:3]
+    fws = wf.fws
     fw_irvsp = IrvspFW(
         structure=st,
         parents=fws[-1],
+        symprec=0.001,
         irvsptodb_kwargs={
             "collection_name": "ir_data",
             "additional_fields": {
