@@ -1,4 +1,5 @@
 from my_atomate.powerups import add_modify_twod_bs_kpoints
+from my_atomate.fireworks.pytopomat import IrvspFW
 
 from atomate.vasp.workflows.base.core import get_wf
 from atomate.vasp.database import VaspCalcDb
@@ -16,14 +17,13 @@ from pymatgen.core.structure import Structure, SymmOp
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.io.vasp.sets import MPRelaxSet
 from subprocess import call
-from pytopomat.workflows.fireworks import IrvspFW
 
 from mpinterfaces.utils import ensure_vacuum
 import os, shutil
 import numpy as np
 
 c2db = VaspCalcDb.from_db_file("/home/tug03990/scripts/read-IR/jengyuan/c2db_ir/c2db.json")
-for idx, e in enumerate(list(c2db.collection.find({"magstate":"NM"}))[:21]):
+for idx, e in enumerate(list(c2db.collection.find({"magstate":"NM"}))[21:26]):
     st = e["structure"]
 
     os.makedirs("symmetrized_st", exist_ok=True)
@@ -69,9 +69,9 @@ for idx, e in enumerate(list(c2db.collection.find({"magstate":"NM"}))[:21]):
         wf = set_queue_options(wf, walltime="01:00:00", qos="regular", fw_name_constraint=wf.fws[fw_id].name)
     wf.name = wf.name + ":{}".format(e["uid"])
 
-    if idx%2 == 0:
+    if 0 == 0:
         wf = set_execution_options(wf, category="calc_data", fworker_name="jyt_cori")
-    else:
-        wf = set_execution_options(wf, category="calc_data", fworker_name="weiyi_cori")
+    # else:
+    #     wf = set_execution_options(wf, category="calc_data", fworker_name="weiyi_cori")
     lpad.add_wf(wf)
     print(wf)
