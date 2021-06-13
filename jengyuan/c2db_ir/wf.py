@@ -23,7 +23,7 @@ import os, shutil
 import numpy as np
 
 c2db = VaspCalcDb.from_db_file("/home/tug03990/scripts/read-IR/jengyuan/c2db_ir/c2db.json")
-for idx, e in enumerate(list(c2db.collection.find({"magstate":"NM"}))[31:36]):
+for idx, e in enumerate(list(c2db.collection.find({"magstate":"NM"}))[36:41]):
     st = e["structure"]
 
     os.makedirs("symmetrized_st", exist_ok=True)
@@ -66,8 +66,9 @@ for idx, e in enumerate(list(c2db.collection.find({"magstate":"NM"}))[31:36]):
     wf = clean_up_files(wf, ("WAVECAR*", "CHGCAR*"), wf.fws[-1].name, task_name_constraint=wf.fws[-1].tasks[-1].fw_name)
     wf = add_additional_fields_to_taskdocs(wf, {"c2db_uid": e["uid"]})
     wf = preserve_fworker(wf)
-    for fw_id in [0, 1, -1]:
+    for fw_id in [0, 1, 3]:
         wf = set_queue_options(wf, walltime="01:00:00", qos="regular", fw_name_constraint=wf.fws[fw_id].name)
+    wf = set_queue_options(wf, walltime="06:00:00", qos="regular", fw_name_constraint=wf.fws[2].name)
     wf.name = wf.name + ":{}".format(e["uid"])
 
     if 0 == 0:
