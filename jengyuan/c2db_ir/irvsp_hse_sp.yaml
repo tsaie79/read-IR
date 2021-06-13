@@ -42,6 +42,7 @@ fireworks:
           ISPIN: 2
           LWAVE: True
 
-- fw: pytopomat.workflows.fireworks.IrvspFW
+- fw: my_atomate.fireworks.pytopomat.IrvspFW
   params:
     parents: 2
+    symprec: 0.001
