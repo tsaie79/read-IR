@@ -26,7 +26,7 @@ fireworks:
         LAECHG: False
         LWAVE: True
         LCHARG: False
-- fw: my_atomate.vasp.fireworks.fireworks.HSEBSFW
+- fw: my_atomate.fireworks.fireworks.HSEBSFW
   params:
     parents: 1
     mode: line

@@ -1,5 +1,5 @@
 from my_atomate.powerups import add_modify_twod_bs_kpoints
-from my_atomate.vasp.fireworks.pytopomat import IrvspFW
+from my_atomate.fireworks.pytopomat import IrvspFW
 
 from atomate.vasp.workflows.base.core import get_wf
 from atomate.vasp.database import VaspCalcDb
