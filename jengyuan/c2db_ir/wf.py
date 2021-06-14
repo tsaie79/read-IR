@@ -1,5 +1,5 @@
 from my_atomate.powerups import add_modify_twod_bs_kpoints
-from my_atomate.fireworks.pytopomat import IrvspFW
+from my_atomate.vasp.fireworks.pytopomat import IrvspFW
 
 from atomate.vasp.workflows.base.core import get_wf
 from atomate.vasp.database import VaspCalcDb
@@ -23,7 +23,7 @@ import os, shutil
 import numpy as np
 
 c2db = VaspCalcDb.from_db_file("/home/tug03990/scripts/read-IR/jengyuan/c2db_ir/c2db.json")
-for idx, e in enumerate(list(c2db.collection.find({"magstate":"NM"}))[36:41]):
+for idx, e in enumerate(list(c2db.collection.find({"magstate":"NM"}))[41:42]):
     st = e["structure"]
 
     os.makedirs("symmetrized_st", exist_ok=True)
@@ -47,11 +47,6 @@ for idx, e in enumerate(list(c2db.collection.find({"magstate":"NM"}))[36:41]):
         symprec=0.001,
         irvsptodb_kwargs={
             "collection_name": "ir_data",
-            "additional_fields": {
-                "c2db_uid": e["uid"],
-                "spg_c2db": e["spacegroup"],
-                "spg_pymatgen": SpacegroupAnalyzer(st).get_space_group_symbol()
-            }
         }
     )
     fws.append(fw_irvsp)
